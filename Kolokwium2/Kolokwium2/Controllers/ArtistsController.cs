@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Kolokwium2.DTOs.Requests;
+using Kolokwium2.Exceptions;
 using Kolokwium2.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,9 +27,9 @@ namespace Kolokwium2.Controllers
             try
             {
                 return Ok(_service.GetArtist(id));
-            }catch(Exception exc)
+            }catch(ArtistDoesNotExistException exc)
             {
-                return BadRequest(exc.Message);
+                return NotFound(exc.Message);
             }
         }
 
@@ -39,7 +40,19 @@ namespace Kolokwium2.Controllers
             {
                 _service.UpdateEventTime(artistId, eventId, request);
                 return Ok();
-            } catch (Exception exc)
+            } catch (ArtistDoesNotExistException exc)
+            {
+                return NotFound(exc.Message);
+            } catch (EventDoesNotExistException exc)
+            {
+                return NotFound(exc.Message);
+            } catch (ArtistDoesNotParticipateException exc)
+            {
+                return BadRequest(exc.Message);
+            } catch (PerformanceDateBeforeStartException exc)
+            {
+                return BadRequest(exc.Message);
+            } catch (PerformanceDateAfterEndException exc)
             {
                 return BadRequest(exc.Message);
             }

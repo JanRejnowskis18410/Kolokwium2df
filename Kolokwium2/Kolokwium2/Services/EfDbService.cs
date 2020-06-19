@@ -1,4 +1,5 @@
 ﻿using Kolokwium2.DTOs.Requests;
+using Kolokwium2.Exceptions;
 using Kolokwium2.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -25,7 +26,7 @@ namespace Kolokwium2.Services
 
             if(artist == null)
             {
-                throw new Exception($"Artist with id = {id} does not exist!");
+                throw new ArtistDoesNotExistException($"Artist with id = {id} does not exist!");
             }
 
             artist.ArtistEvent = artist.ArtistEvent.OrderByDescending(a => a.PerformanceDate).ToList();
@@ -40,26 +41,26 @@ namespace Kolokwium2.Services
 
             if (artist == null)
             {
-                throw new Exception($"Artist with id = {artistId} does not exist!");
+                throw new ArtistDoesNotExistException($"Artist with id = {artistId} does not exist!");
             }
 
             var _event = _context.Event.SingleOrDefault(e => e.IdEvent == request.idEvent);
 
             if (_event == null)
-                throw new Exception($"Event with id = {request.idEvent} does not exist!");
+                throw new EventDoesNotExistException($"Event with id = {request.idEvent} does not exist!");
 
             var artistEvent = artist.ArtistEvent.SingleOrDefault(ae => ae.IdEvent == _event.IdEvent);
 
             if (artistEvent == null)
-                throw new Exception($"Artist does not participate in event with id = {_event.IdEvent}");
+                throw new ArtistDoesNotParticipateException($"Artist does not participate in event with id = {_event.IdEvent}");
 
             if (DateTime.Compare(artistEvent.PerformanceDate, DateTime.Now) <= 0)
-                throw new Exception($"Event with id = {artistEvent.IdEvent} has already began!");
+                throw new EventStartedException($"Event with id = {artistEvent.IdEvent} has already began!");
 
             if (DateTime.Compare(request.performanceDate, _event.StartDate) < 0)
-                throw new Exception($"The new performance date is incorrect - before start date!");
+                throw new PerformanceDateBeforeStartException($"The new performance date is incorrect - before start date!");
             else if(DateTime.Compare(request.performanceDate, _event.EndDate) > 0)
-                throw new Exception($"The new performance date is incorrect - after end date!");
+                throw new PerformanceDateAfterEndException($"The new performance date is incorrect - after end date!");
 
             artistEvent.PerformanceDate = request.performanceDate;
             _context.SaveChanges();
